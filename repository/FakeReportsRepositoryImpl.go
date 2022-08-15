@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"awesomeProject/model"
 	"errors"
 	"fmt"
+	"poc-push-app-api/model"
 )
 
 type FakeReportsRepositoryImpl struct {

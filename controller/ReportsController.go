@@ -1,13 +1,13 @@
 package controller
 
 import (
-	"awesomeProject/model"
-	"awesomeProject/repository"
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"io"
 	"net/http"
+	"poc-push-app-api/model"
+	"poc-push-app-api/repository"
 )
 
 type ReportController struct {

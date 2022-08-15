@@ -1,6 +1,6 @@
 package repository
 
-import "awesomeProject/model"
+import "poc-push-app-api/model"
 
 type ReportsRepository interface {
 	GetAll() ([]model.ReportModel, error)

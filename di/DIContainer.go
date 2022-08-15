@@ -1,8 +1,8 @@
 package di
 
 import (
-	"awesomeProject/controller"
-	"awesomeProject/repository"
+	"poc-push-app-api/controller"
+	"poc-push-app-api/repository"
 )
 
 func CreateReportsRepository() *repository.FakeReportsRepositoryImpl {

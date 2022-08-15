@@ -1,12 +1,12 @@
 package main
 
 import (
-	"awesomeProject/di"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"io"
 	"log"
 	"net/http"
+	"poc-push-app-api/di"
 )
 
 func main() {
