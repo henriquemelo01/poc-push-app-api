@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"io"
 	"log"
 	"net/http"
 	"poc-push-app-api/di"
@@ -16,18 +15,13 @@ func main() {
 	// Setup MiddleWares
 	serveMux.Use(middleware.Logger)
 
-	// Setup Hello World Handler
-	serveMux.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+	serveMux.HandleFunc("/ping", func(writer http.ResponseWriter, request *http.Request) {
 
 		writer.WriteHeader(http.StatusOK)
 
 		writer.Header().Set("Content-Type", "text/plain")
 
-		_, err := io.WriteString(writer, "Hello World")
-
-		if err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
-		}
+		_, _ = writer.Write([]byte("pong"))
 	})
 
 	// Setup Controllers

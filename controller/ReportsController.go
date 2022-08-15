@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi/v5"
-	"io"
 	"net/http"
 	"poc-push-app-api/model"
 	"poc-push-app-api/repository"
@@ -82,24 +81,16 @@ func (rc *ReportController) GetById(writer http.ResponseWriter, req *http.Reques
 
 func (rc ReportController) Create(writer http.ResponseWriter, req *http.Request) {
 
-	reqBody := req.Body
+	defer req.Body.Close()
 
-	reqBodyData, readBodyErr := io.ReadAll(reqBody)
-
-	if readBodyErr != nil {
-		errorMessage := fmt.Sprintf("Houve um erro por aqui: %s", readBodyErr.Error())
-		http.Error(writer, errorMessage, http.StatusInternalServerError)
-		return
-	}
-
-	reportModel := &model.ReportModel{}
-	if jsonParseErr := json.Unmarshal(reqBodyData, reportModel); jsonParseErr != nil {
-		errorMessage := fmt.Sprintf("Houve um erro por aqui: %s", jsonParseErr.Error())
+	reportModel := model.ReportModel{}
+	if jsonParseError := json.NewDecoder(req.Body).Decode(&reportModel); jsonParseError != nil {
+		errorMessage := fmt.Sprintf("Houve um erro por aqui: %s", jsonParseError.Error())
 		http.Error(writer, errorMessage, http.StatusBadRequest)
 		return
 	}
 
-	_, repositoryErr := rc.repository.Create(*reportModel)
+	createdReportModel, repositoryErr := rc.repository.Create(reportModel)
 
 	if repositoryErr != nil {
 		errorMessage := fmt.Sprintf("Houve um erro por aqui: %s", repositoryErr.Error())
@@ -107,9 +98,17 @@ func (rc ReportController) Create(writer http.ResponseWriter, req *http.Request)
 		return
 	}
 
+	createdReportModelJson, jsonSerializeError := json.Marshal(createdReportModel)
+
+	if jsonSerializeError != nil {
+		errorMessage := fmt.Sprintf("Houve um erro por aqui: %s", jsonSerializeError.Error())
+		http.Error(writer, errorMessage, http.StatusBadRequest)
+		return
+	}
+
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(http.StatusCreated)
-	_, _ = writer.Write(reqBodyData)
+	_, _ = writer.Write(createdReportModelJson)
 }
 
 func (rc ReportController) Delete(writer http.ResponseWriter, req *http.Request) {
