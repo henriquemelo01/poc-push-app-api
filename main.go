@@ -21,7 +21,7 @@ func main() {
 
 		writer.Header().Set("Content-Type", "text/plain")
 
-		_, _ = writer.Write([]byte("pong"))
+		_, _ = writer.Write([]byte("Pong 🧙‍♂️"))
 	})
 
 	// Setup Controllers
