@@ -2,14 +2,18 @@ package di
 
 import (
 	"poc-push-app-api/controller"
-	"poc-push-app-api/repository"
+	"poc-push-app-api/services/repository"
 )
 
-func CreateReportsRepository() *repository.FakeReportsRepositoryImpl {
+func CreateMongoReportsRepositoryImpl() *repository.MongoReportsRepositoryImpl {
+	return repository.CreateMongoReportsRepositoryImpl()
+}
+
+func CreateFakeReportsRepositoryImpl() *repository.FakeReportsRepositoryImpl {
 	return repository.CreateFakeReportsRepositoryImpl()
 }
 
 func CreateReportsController() *controller.ReportController {
-	reportsRepository := CreateReportsRepository()
+	reportsRepository := CreateMongoReportsRepositoryImpl()
 	return controller.CreateReportController(reportsRepository)
 }

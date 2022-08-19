@@ -3,7 +3,7 @@ package repository
 import (
 	"errors"
 	"fmt"
-	"poc-push-app-api/model"
+	"poc-push-app-api/domain/model"
 )
 
 type FakeReportsRepositoryImpl struct {

@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"net/http"
-	"poc-push-app-api/model"
-	"poc-push-app-api/repository"
+	"poc-push-app-api/domain/model"
+	"poc-push-app-api/domain/services"
 )
 
 type ReportController struct {
-	repository repository.ReportsRepository
+	repository services.ReportsRepository
 }
 
-func CreateReportController(reportRepository repository.ReportsRepository) *ReportController {
+func CreateReportController(reportRepository services.ReportsRepository) *ReportController {
 	return &ReportController{
 		repository: reportRepository,
 	}

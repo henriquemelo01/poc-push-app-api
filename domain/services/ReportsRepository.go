@@ -1,6 +1,8 @@
-package repository
+package services
 
-import "poc-push-app-api/model"
+import (
+	"poc-push-app-api/domain/model"
+)
 
 type ReportsRepository interface {
 	GetAll() ([]model.ReportModel, error)
