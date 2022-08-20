@@ -2,12 +2,13 @@ package repository
 
 import (
 	"context"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"os"
 	"poc-push-app-api/domain/model"
 	"poc-push-app-api/dto"
-	"poc-push-app-api/localVariables/constants"
 	"time"
 )
 
@@ -23,8 +24,11 @@ func (mr *MongoReportsRepositoryImpl) connectToMongoClient() (*mongo.Client, err
 
 	defer cancel()
 
-	//client, clientConnectionError := mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MONGODB_URI")))
-	client, clientConnectionError := mongo.Connect(ctx, options.Client().ApplyURI(constants.MongoURI))
+	if loadingDotEnvFileError := godotenv.Load(".env"); loadingDotEnvFileError != nil {
+		return nil, loadingDotEnvFileError
+	}
+
+	client, clientConnectionError := mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MONGO_URI")))
 
 	if clientConnectionError != nil {
 		return nil, clientConnectionError
