@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"os"
@@ -45,12 +46,6 @@ func (mr *MongoReportsRepositoryImpl) GetAll() ([]model.ReportModel, error) {
 		return nil, connectionError
 	}
 
-	//defer func() {
-	//	if err := client.Disconnect(context.TODO()); err != nil {
-	//		panic(err)
-	//	}
-	//}()
-
 	ctx := context.Background()
 
 	cursor, getReportsDocumentsError := client.Database("PushApp").Collection("reports").Find(ctx, bson.M{})
@@ -67,8 +62,10 @@ func (mr *MongoReportsRepositoryImpl) GetAll() ([]model.ReportModel, error) {
 	var reportsModel []model.ReportModel
 	for _, reportDTO := range reportsDTO {
 
+		reportDtoId := reportDTO.Id.(primitive.ObjectID).Hex()
+
 		reportModel := model.ReportModel{
-			Id:                  reportDTO.Id,
+			Id:                  reportDtoId,
 			MeanVelocity:        reportDTO.MeanVelocity,
 			MeanAcceleration:    reportDTO.MeanAcceleration,
 			Weight:              reportDTO.Weight,
@@ -85,7 +82,7 @@ func (mr *MongoReportsRepositoryImpl) GetAll() ([]model.ReportModel, error) {
 	return reportsModel, nil
 }
 
-func (mr *MongoReportsRepositoryImpl) Create(report model.ReportModel) (model.ReportModel, error) {
+func (mr *MongoReportsRepositoryImpl) Create(createReportDto dto.CreateReportDto) (model.ReportModel, error) {
 
 	client, connectionError := mr.connectToMongoClient()
 
@@ -95,17 +92,19 @@ func (mr *MongoReportsRepositoryImpl) Create(report model.ReportModel) (model.Re
 
 	ctx := context.Background()
 
-	reportDTO := dto.ReportDTO{
-		Id:                  report.Id,
-		MeanVelocity:        report.MeanVelocity,
-		MeanAcceleration:    report.MeanAcceleration,
-		Weight:              report.Weight,
-		TrainingMethodology: report.TrainingMethodology,
-	}
-
-	_, createReportDocumentsError := client.Database("PushApp").Collection("reports").InsertOne(ctx, reportDTO)
+	createdReport, createReportDocumentsError := client.Database("PushApp").Collection("reports").InsertOne(ctx, createReportDto)
 	if createReportDocumentsError != nil {
 		return model.ReportModel{}, createReportDocumentsError
+	}
+
+	createdReportId := createdReport.InsertedID.(primitive.ObjectID).Hex()
+
+	report := model.ReportModel{
+		Id:                  createdReportId,
+		MeanVelocity:        createReportDto.MeanVelocity,
+		MeanAcceleration:    createReportDto.MeanAcceleration,
+		Weight:              createReportDto.Weight,
+		TrainingMethodology: createReportDto.TrainingMethodology,
 	}
 
 	if disconnectToClientError := client.Disconnect(context.TODO()); disconnectToClientError != nil {
@@ -123,23 +122,27 @@ func (mr *MongoReportsRepositoryImpl) GetById(id string) (model.ReportModel, err
 		return model.ReportModel{}, connectionError
 	}
 
-	//defer func() {
-	//	if err := client.Disconnect(context.TODO()); err != nil {
-	//		panic(err)
-	//	}
-	//}()
-
 	ctx := context.Background()
 
+	objectId, createObjectIdError := primitive.ObjectIDFromHex(id)
+	if createObjectIdError != nil {
+		return model.ReportModel{}, createObjectIdError
+	}
+
+	searchReportByIdQuery := bson.D{{"_id", objectId}}
+
 	var reportDTO dto.ReportDTO
-	getReportDocumentsError := client.Database("PushApp").Collection("reports").FindOne(ctx, bson.D{{"id", id}}).Decode(&reportDTO)
+	getReportDocumentsError :=
+		client.Database("PushApp").Collection("reports").FindOne(ctx, searchReportByIdQuery).Decode(&reportDTO)
 
 	if getReportDocumentsError != nil {
 		return model.ReportModel{}, getReportDocumentsError
 	}
 
+	reportDtoId := reportDTO.Id.(primitive.ObjectID).Hex()
+
 	reportModel := model.ReportModel{
-		Id:                  reportDTO.Id,
+		Id:                  reportDtoId,
 		MeanVelocity:        reportDTO.MeanVelocity,
 		MeanAcceleration:    reportDTO.MeanAcceleration,
 		Weight:              reportDTO.Weight,
@@ -159,11 +162,18 @@ func (mr *MongoReportsRepositoryImpl) Delete(id string) error {
 
 	ctx := context.Background()
 
+	objectId, createObjectIdError := primitive.ObjectIDFromHex(id)
+	if createObjectIdError != nil {
+		return createObjectIdError
+	}
+
+	deleteReportByIdQuery := bson.D{{"_id", objectId}}
+
 	if connectionError != nil {
 		return connectionError
 	}
 
-	_, deletedReportError := client.Database("PushApp").Collection("reports").DeleteOne(ctx, bson.D{{"id", id}})
+	_, deletedReportError := client.Database("PushApp").Collection("reports").DeleteOne(ctx, deleteReportByIdQuery)
 	if deletedReportError != nil {
 		return deletedReportError
 	}

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"net/http"
-	"poc-push-app-api/domain/model"
 	"poc-push-app-api/domain/services"
+	"poc-push-app-api/dto"
 )
 
 type ReportController struct {
@@ -81,16 +81,22 @@ func (rc *ReportController) GetById(writer http.ResponseWriter, req *http.Reques
 
 func (rc ReportController) Create(writer http.ResponseWriter, req *http.Request) {
 
-	defer req.Body.Close()
+	defer func() {
+		if reqBodyCloseError := req.Body.Close(); reqBodyCloseError != nil {
+			writer.WriteHeader(http.StatusBadRequest)
+			errorMessage := fmt.Sprintf("Houve um erro por aqui: %s", reqBodyCloseError)
+			_, _ = writer.Write([]byte(errorMessage))
+		}
+	}()
 
-	reportModel := model.ReportModel{}
-	if jsonParseError := json.NewDecoder(req.Body).Decode(&reportModel); jsonParseError != nil {
+	createReportDto := dto.CreateReportDto{}
+	if jsonParseError := json.NewDecoder(req.Body).Decode(&createReportDto); jsonParseError != nil {
 		errorMessage := fmt.Sprintf("Houve um erro por aqui: %s", jsonParseError.Error())
 		http.Error(writer, errorMessage, http.StatusBadRequest)
 		return
 	}
 
-	createdReportModel, repositoryErr := rc.repository.Create(reportModel)
+	createdReportModel, repositoryErr := rc.repository.Create(createReportDto)
 
 	if repositoryErr != nil {
 		errorMessage := fmt.Sprintf("Houve um erro por aqui: %s", repositoryErr.Error())
